@@ -46,7 +46,7 @@ class Pawn:
         self.color = color
         self.image = pygame.image.load("resources/pawn_" + color + ".png")
         self.points = 1 if color is 'b' else -1
-        self.double_step_row = 2 if color is 'b' else 6
+        self.double_step_row = 1 if color is 'b' else 6
 
     def get_moves(self, position, board_state):
         valid_moves = []
