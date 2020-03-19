@@ -22,7 +22,7 @@ INFINITY = 1000
 
 # FUNCTIONS
 
-def print_board(highlight=None):
+def print_board(highlight=None, warning=None):
     for x in range(8):
         for y in range(8):
             if (x + y) % 2 == 0:
@@ -39,6 +39,13 @@ def print_board(highlight=None):
         # no need to check if there is a piece since it just moved there
         screen.blit(board_state[highlight[0]][highlight[1]].image,
                     (highlight[0] * UNIT_WIDTH, highlight[1] * UNIT_WIDTH))
+
+    if warning is not None:
+        pygame.draw.rect(screen, (180, 0, 0),
+                         (warning[0] * UNIT_WIDTH, warning[1] * UNIT_WIDTH, UNIT_WIDTH, UNIT_WIDTH))
+        # no need to check if there is a piece since it just moved there
+        screen.blit(board_state[warning[0]][warning[1]].image,
+                    (warning[0] * UNIT_WIDTH, warning[1] * UNIT_WIDTH))
 
 
 def get_clicked_position():
@@ -90,6 +97,24 @@ def get_copy(board):
     return board_copy
 
 
+def handle_castling(board, piece_pos, all_pieces):
+    if board[piece_pos[0]][piece_pos[1]].__class__.__name__ is "King":
+        if board[piece_pos[0]][piece_pos[1]].can_castle:
+            if piece_pos[0] == 6:
+                board[5][7] = board[7][7]  # rook movement
+                board[7][7] = None
+                all_pieces[all_pieces.index((7, piece_pos[1]))] = (5, piece_pos[1])
+
+            elif piece_pos[0] == 2:
+                board[3][7] = board[0][7]  # rook movement
+                board[0][7] = None
+                all_pieces[all_pieces.index((0, piece_pos[1]))] = (3, piece_pos[1])
+        board[piece_pos[0]][piece_pos[1]].can_castle = False
+
+    if board[piece_pos[0]][piece_pos[1]].__class__.__name__ is "Rook" and board[piece_pos[0]][piece_pos[1]].can_castle:
+        board[piece_pos[0]][piece_pos[1]].can_castle = False
+
+
 def minimax(board, black, white, depth, alpha, beta, is_maximizing):
     if depth == 0 or is_game_over(board, black, white, 'w' if is_maximizing else 'b'):
         return get_point_sum(board), None
@@ -105,6 +130,10 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
                 board_temp[piece_pos[0]][piece_pos[1]] = None
                 black_temp = black.copy()
                 black_temp[black.index(piece_pos)] = move
+                
+                #castling
+                handle_castling(board_temp, piece_pos, black_temp)
+                
                 white_temp = white
                 if move in white:
                     white_temp = white.copy()
@@ -133,6 +162,10 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
                 board_temp[piece_pos[0]][piece_pos[1]] = None
                 white_temp = white.copy()
                 white_temp[white.index(piece_pos)] = move
+
+                # handles any castling if there
+                handle_castling(board_temp, piece_pos, white_temp)
+                
                 black_temp = black
                 if move in black:
                     black_temp = black.copy()
@@ -151,7 +184,7 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
         return min_val, player, play
 
 
-pygame.display.set_caption("Say Chesse!")
+pygame.display.set_caption("Say Chess!")
 screen = pygame.display.set_mode((DISPLAY_SIZE, DISPLAY_SIZE))
 
 board_state = [[Rook('b'), Pawn('b'), None, None, None, None, Pawn('w'), Rook('w')],
@@ -195,10 +228,11 @@ while is_running:
                     white_pieces[white_pieces.index(active_piece_pos)] = pos
                     if pos in black_pieces:
                         black_pieces.remove(pos)
+                    handle_castling(board_state, pos, white_pieces)
+                    warn_pos = is_checked('b', board_state, black_pieces, white_pieces)
                     active_piece_pos = None
                     open_slots = None
-                    print_board(pos)
-
+                    print_board(highlight=pos, warning=warn_pos)
                     pygame.display.update()
 
                     comp_move = minimax(board_state, black_pieces, white_pieces, MINIMAX_DEPTH, -INFINITY, INFINITY,
@@ -208,11 +242,13 @@ while is_running:
                     black_pieces[black_pieces.index(comp_move[1])] = comp_move[2]
                     if comp_move[2] in white_pieces:
                         white_pieces.remove(comp_move[2])
+                    handle_castling(board_state, comp_move[2], black_pieces)
+                    warn_pos = is_checked('w', board_state, black_pieces, white_pieces)
                     if is_game_over(board_state, black_pieces, white_pieces, 'w') is 'b':
                         winner = 'b'
                         is_running = False
                         break
-                    print_board(comp_move[2])
+                    print_board(highlight=comp_move[2], warning=warn_pos)
                     pygame.display.update()
 
                 else:

@@ -1,6 +1,8 @@
 import pygame
 
 BOARD_DIMENSION = 8
+BLACK_KING_POS = (4, 0)
+WHITE_KING_POS = (4, 7)
 
 
 def is_available(x, y, side, board_state):
@@ -11,7 +13,26 @@ def is_available(x, y, side, board_state):
     return False
 
 
+def is_checked(side, board, black, white):
+    king = None
+    check_for = None
+    if side is 'w':
+        check_for = black
+        for piece in white:
+            if board[piece[0]][piece[1]].__class__.__name__ is "King":
+                king = piece
 
+    else:
+        check_for = white
+        for piece in black:
+            if board[piece[0]][piece[1]].__class__.__name__ is "King":
+                king = piece
+
+    for piece_pos in check_for:
+        if king in board[piece_pos[0]][piece_pos[1]].get_moves(piece_pos, board):
+            return king
+
+    return None
 
 
 class Pawn:
@@ -50,6 +71,7 @@ class Rook:
         self.color = color
         self.image = pygame.image.load("resources/rook_" + color + ".png")
         self.points = 5 if color is 'b' else -5
+        self.can_castle = True
 
     def get_moves(self, position, board_state):
         valid_moves = []
@@ -243,6 +265,7 @@ class King:
         self.color = color
         self.image = pygame.image.load("resources/king_" + color + ".png")
         self.points = 100 if color is 'b' else -100
+        self.can_castle = True
 
     def get_moves(self, position, board_state):
         valid_moves = []
@@ -251,4 +274,17 @@ class King:
         for update in move_increments:
             if is_available(position[0] + update[0], position[1] + update[1], self.dir_coeff, board_state):
                 valid_moves.append((position[0] + update[0], position[1] + update[1]))
+
+        if self.can_castle:
+            # castling
+            pos = BLACK_KING_POS if self.color is 'b' else WHITE_KING_POS
+            if board_state[1][pos[1]] is None and board_state[2][pos[1]] is None and board_state[3][pos[1]] is None:
+                if board_state[0][pos[1]] is not None and board_state[0][pos[1]].__class__.__name__ is "Rook" and \
+                        board_state[0][pos[1]].can_castle:
+                    valid_moves.append((2, pos[1]))
+            if board_state[5][pos[1]] is None and board_state[6][pos[1]] is None:
+                if board_state[7][pos[1]] is not None and board_state[7][pos[1]].__class__.__name__ is "Rook" and \
+                        board_state[7][pos[1]].can_castle:
+                    valid_moves.append((6, pos[1]))
+
         return valid_moves
