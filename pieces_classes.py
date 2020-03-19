@@ -13,9 +13,14 @@ def is_available(x, y, side, board_state):
     return False
 
 
-def is_checked(side, board, black, white):
+def is_checked(side, board, black=None, white=None):
     king = None
     check_for = None
+    if black is None:
+        black = [(x, y) for x in range(8) for y in range(8) if board[x][y] is not None and board[x][y].color is 'b']
+    if white is None:
+        white = [(x, y) for x in range(8) for y in range(8) if board[x][y] is not None and board[x][y].color is 'w']
+
     if side is 'w':
         check_for = black
         for piece in white:
@@ -280,11 +285,11 @@ class King:
             pos = BLACK_KING_POS if self.color is 'b' else WHITE_KING_POS
             if board_state[1][pos[1]] is None and board_state[2][pos[1]] is None and board_state[3][pos[1]] is None:
                 if board_state[0][pos[1]] is not None and board_state[0][pos[1]].__class__.__name__ is "Rook" and \
-                        board_state[0][pos[1]].can_castle:
+                        board_state[0][pos[1]].can_castle and not is_checked(self.color, board_state):
                     valid_moves.append((2, pos[1]))
             if board_state[5][pos[1]] is None and board_state[6][pos[1]] is None:
                 if board_state[7][pos[1]] is not None and board_state[7][pos[1]].__class__.__name__ is "Rook" and \
-                        board_state[7][pos[1]].can_castle:
+                        board_state[7][pos[1]].can_castle and not is_checked(self.color, board_state):
                     valid_moves.append((6, pos[1]))
 
         return valid_moves
