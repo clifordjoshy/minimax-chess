@@ -13,9 +13,8 @@ def is_available(x, y, side, board_state):
     return False
 
 
-def is_checked(side, board, black=None, white=None):
+def get_if_checked(side, board, black=None, white=None):
     king = None
-    check_for = None
     if black is None:
         black = [(x, y) for x in range(8) for y in range(8) if board[x][y] is not None and board[x][y].color is 'b']
     if white is None:
@@ -47,25 +46,42 @@ class Pawn:
         self.image = pygame.image.load("resources/pawn_" + color + ".png")
         self.points = 1 if color is 'b' else -1
         self.double_step_row = 1 if color is 'b' else 6
+        self.promotion_row = 0 if color is 'w' else 7
 
     def get_moves(self, position, board_state):
         valid_moves = []
-        if is_available(position[0], position[1] + self.dir_coeff, self.dir_coeff, board_state) and \
-                board_state[position[0]][position[1] + self.dir_coeff] is None:
-            valid_moves.append((position[0], position[1] + self.dir_coeff))
+        if board_state[position[0]][position[1] + self.dir_coeff] is None: # stops being pawn at end. Avoid is_available
+            if position[1] + self.dir_coeff != self.promotion_row:
+                valid_moves.append((position[0], position[1] + self.dir_coeff))
+            else:       # promotion
+                valid_moves.append((position[0], position[1] + self.dir_coeff, Queen))
+                valid_moves.append((position[0], position[1] + self.dir_coeff, Knight))
+                valid_moves.append((position[0], position[1] + self.dir_coeff, Rook))
+                valid_moves.append((position[0], position[1] + self.dir_coeff, Bishop))
 
             # second one only if first is available
-            if position[1] == self.double_step_row and is_available(position[0], position[1] + 2 * self.dir_coeff,
-                                                                    self.dir_coeff, board_state) and \
-                    board_state[position[0]][position[1] + 2 * self.dir_coeff] is None:
+            if position[1] == self.double_step_row and board_state[position[0]][position[1] + 2 * self.dir_coeff] is None:
                 valid_moves.append((position[0], position[1] + 2 * self.dir_coeff))
 
         if is_available(position[0] - 1, position[1] + self.dir_coeff, self.dir_coeff, board_state) and \
                 board_state[position[0] - 1][position[1] + self.dir_coeff] is not None:
-            valid_moves.append((position[0] - 1, position[1] + self.dir_coeff))
+            if position[1]+self.dir_coeff != self.promotion_row:
+                valid_moves.append((position[0] - 1, position[1] + self.dir_coeff))
+            else:
+                valid_moves.append((position[0] - 1, position[1] + self.dir_coeff, Queen))
+                valid_moves.append((position[0] - 1, position[1] + self.dir_coeff, Knight))
+                valid_moves.append((position[0] - 1, position[1] + self.dir_coeff, Rook))
+                valid_moves.append((position[0] - 1, position[1] + self.dir_coeff, Bishop))
+
         if is_available(position[0] + 1, position[1] + self.dir_coeff, self.dir_coeff, board_state) and \
                 board_state[position[0] + 1][position[1] + self.dir_coeff] is not None:
-            valid_moves.append((position[0] + 1, position[1] + self.dir_coeff))
+            if position[1] + self.dir_coeff != self.promotion_row:
+                valid_moves.append((position[0] + 1, position[1] + self.dir_coeff))
+            else:
+                valid_moves.append((position[0] + 1, position[1] + self.dir_coeff, Queen))
+                valid_moves.append((position[0] + 1, position[1] + self.dir_coeff, Knight))
+                valid_moves.append((position[0] + 1, position[1] + self.dir_coeff, Rook))
+                valid_moves.append((position[0] + 1, position[1] + self.dir_coeff, Bishop))
 
         return valid_moves
 
@@ -285,11 +301,11 @@ class King:
             pos = BLACK_KING_POS if self.color is 'b' else WHITE_KING_POS
             if board_state[1][pos[1]] is None and board_state[2][pos[1]] is None and board_state[3][pos[1]] is None:
                 if board_state[0][pos[1]] is not None and board_state[0][pos[1]].__class__.__name__ is "Rook" and \
-                        board_state[0][pos[1]].can_castle and not is_checked(self.color, board_state):
+                        board_state[0][pos[1]].can_castle and get_if_checked(self.color, board_state) is None:
                     valid_moves.append((2, pos[1]))
             if board_state[5][pos[1]] is None and board_state[6][pos[1]] is None:
                 if board_state[7][pos[1]] is not None and board_state[7][pos[1]].__class__.__name__ is "Rook" and \
-                        board_state[7][pos[1]].can_castle and not is_checked(self.color, board_state):
+                        board_state[7][pos[1]].can_castle and get_if_checked(self.color, board_state) is None:
                     valid_moves.append((6, pos[1]))
 
         return valid_moves

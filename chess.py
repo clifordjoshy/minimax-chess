@@ -126,18 +126,24 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
         for piece_pos in black:
             for move in board[piece_pos[0]][piece_pos[1]].get_moves(piece_pos, board):
                 board_temp = get_copy(board)
-                board_temp[move[0]][move[1]] = board_temp[piece_pos[0]][piece_pos[1]]
-                board_temp[piece_pos[0]][piece_pos[1]] = None
                 black_temp = black.copy()
-                black_temp[black.index(piece_pos)] = move
-                
-                #castling
+
+                if len(move) == 2:
+                    board_temp[move[0]][move[1]] = board_temp[piece_pos[0]][piece_pos[1]]
+                    board_temp[piece_pos[0]][piece_pos[1]] = None
+                    black_temp[black.index(piece_pos)] = move
+                else:       # pawn promotion
+                    board_temp[move[0]][move[1]] = move[2]('b')
+                    board_temp[piece_pos[0]][piece_pos[1]] = None
+                    black_temp[black.index(piece_pos)] = (move[0], move[1])     # remove third mem
+
+                # handles any castling if there
                 handle_castling(board_temp, piece_pos, black_temp)
-                
+
                 white_temp = white
-                if move in white:
+                if (move[0], move[1]) in white:
                     white_temp = white.copy()
-                    white_temp.remove(move)
+                    white_temp.remove((move[0], move[1]))
 
                 val = minimax(board_temp, black_temp, white_temp, depth - 1, alpha, beta, False)
                 if val[0] > max_val:
@@ -158,18 +164,24 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
         for piece_pos in white:
             for move in board[piece_pos[0]][piece_pos[1]].get_moves(piece_pos, board):
                 board_temp = get_copy(board)
-                board_temp[move[0]][move[1]] = board_temp[piece_pos[0]][piece_pos[1]]
-                board_temp[piece_pos[0]][piece_pos[1]] = None
                 white_temp = white.copy()
-                white_temp[white.index(piece_pos)] = move
 
-                # handles any castling if there
+                if len(move) == 2:
+                    board_temp[move[0]][move[1]] = board_temp[piece_pos[0]][piece_pos[1]]
+                    board_temp[piece_pos[0]][piece_pos[1]] = None
+                    white_temp[white.index(piece_pos)] = move
+
+                else:
+                    board_temp[move[0]][move[1]] = move[2]('w')
+                    board_temp[piece_pos[0]][piece_pos[1]] = None
+                    white_temp[white.index(piece_pos)] = (move[0], move[1])
+
                 handle_castling(board_temp, piece_pos, white_temp)
                 
                 black_temp = black
-                if move in black:
+                if (move[0], move[1]) in black:
                     black_temp = black.copy()
-                    black_temp.remove(move)
+                    black_temp.remove((move[0], move[1]))
                 val = minimax(board_temp, black_temp, white_temp, depth - 1, alpha, beta, True)
                 if val[0] < min_val:
                     min_val = val[0]
@@ -182,6 +194,36 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
             if beta <= alpha:
                 break
         return min_val, player, play
+
+
+def handle_promotion_menu(position):
+    if position[1] == 0 and board_state[position[0]][position[1]].__class__.__name__ is "Pawn":
+        pygame.draw.rect(screen, (128, 0, 128), (155, 275, 330, 90))
+        pygame.draw.rect(screen, (255, 255, 0), (160, 280, 320, 80))
+        screen.blit(pygame.image.load("resources/knight_w.png"), (160, 280))
+        screen.blit(pygame.image.load("resources/bishop_w.png"), (240, 280))
+        screen.blit(pygame.image.load("resources/rook_w.png"), (320, 280))
+        screen.blit(pygame.image.load("resources/queen_w.png"), (400, 280))
+        pygame.display.update()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if 280 <= mouse_pos[1] <= 360:
+                        if 160 <= mouse_pos[0] <= 240:
+                            board_state[position[0]][position[1]] = Knight('w')
+                            return
+                        if 240 <= mouse_pos[0] <= 320:
+                            board_state[position[0]][position[1]] = Bishop('w')
+                            return
+                        if 320 <= mouse_pos[0] <= 400:
+                            board_state[position[0]][position[1]] = Rook('w')
+                            return
+                        if 400 <= mouse_pos[0] <= 480:
+                            board_state[position[0]][position[1]] = Queen('w')
+                            return
 
 
 pygame.display.set_caption("Say Chess!")
@@ -218,32 +260,50 @@ while is_running:
                 if board_state[pos[0]][pos[1]] is not None and board_state[pos[0]][pos[1]].color is 'w':
                     active_piece_pos = pos
                     open_slots = board_state[active_piece_pos[0]][active_piece_pos[1]].get_moves(pos, board_state)
+                    for i in range(len(open_slots)):
+                        if len(open_slots[i]) != 2:     # is promotion pawn(contains 3 promotion moves as third member)
+                            open_slots[i] = (open_slots[i][0], open_slots[i][1])
                     print_markers(open_slots)
                     pygame.display.update()
 
             else:
                 if pos in open_slots:
+                    # user move
                     board_state[pos[0]][pos[1]] = board_state[active_piece_pos[0]][active_piece_pos[1]]
                     board_state[active_piece_pos[0]][active_piece_pos[1]] = None
                     white_pieces[white_pieces.index(active_piece_pos)] = pos
                     if pos in black_pieces:
                         black_pieces.remove(pos)
+                    handle_promotion_menu(pos)
                     handle_castling(board_state, pos, white_pieces)
-                    warn_pos = is_checked('b', board_state, black_pieces, white_pieces)
+                    warn_pos = get_if_checked('b', board_state, black_pieces, white_pieces)
                     active_piece_pos = None
                     open_slots = None
+                    if is_game_over(board_state, black_pieces, white_pieces, 'b') is 'w':
+                        winner = 'w'
+                        is_running = False
+                        break
                     print_board(highlight=pos, warning=warn_pos)
                     pygame.display.update()
 
+                    # computer move
                     comp_move = minimax(board_state, black_pieces, white_pieces, MINIMAX_DEPTH, -INFINITY, INFINITY,
                                         True)
-                    board_state[comp_move[2][0]][comp_move[2][1]] = board_state[comp_move[1][0]][comp_move[1][1]]
-                    board_state[comp_move[1][0]][comp_move[1][1]] = None
-                    black_pieces[black_pieces.index(comp_move[1])] = comp_move[2]
-                    if comp_move[2] in white_pieces:
-                        white_pieces.remove(comp_move[2])
+                    if len(comp_move[2]) == 2:
+                        board_state[comp_move[2][0]][comp_move[2][1]] = board_state[comp_move[1][0]][comp_move[1][1]]
+                        board_state[comp_move[1][0]][comp_move[1][1]] = None
+                        black_pieces[black_pieces.index(comp_move[1])] = comp_move[2]
+
+                    else:       # promotion
+                        board_state[comp_move[2][0]][comp_move[2][1]] = comp_move[2][2]('b')
+                        board_state[comp_move[1][0]][comp_move[1][1]] = None
+                        black_pieces[black_pieces.index(comp_move[1])] = (comp_move[2][0], comp_move[2][1])
+
+                    if (comp_move[2][0], comp_move[2][1]) in white_pieces:
+                        white_pieces.remove((comp_move[2][0], comp_move[2][1]))
+
                     handle_castling(board_state, comp_move[2], black_pieces)
-                    warn_pos = is_checked('w', board_state, black_pieces, white_pieces)
+                    warn_pos = get_if_checked('w', board_state, black_pieces, white_pieces)
                     if is_game_over(board_state, black_pieces, white_pieces, 'w') is 'b':
                         winner = 'b'
                         is_running = False
