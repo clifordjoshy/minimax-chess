@@ -11,6 +11,9 @@ def is_available(x, y, side, board_state):
     return False
 
 
+
+
+
 class Pawn:
     def __init__(self, color):
         self.dir_coeff = 1 if color is 'b' else -1  # black playing down the board\

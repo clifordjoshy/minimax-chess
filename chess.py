@@ -1,21 +1,28 @@
 import sys
 from pieces_classes import *
 
+'''
+if getattr(sys, 'frozen', False):
+    Path = sys._MEIPASS              
+else:
+    Path = os.path.dirname(__file__) 
+'''
+
 pygame.init()
 
 # CONSTANTS
 COLOR_WHITE = (252, 215, 157)
 COLOR_BLACK = (171, 101, 37)
-COLOR_MARKER = (146, 187, 0)
+COLOR_MARKER = (87, 187, 0)
 DISPLAY_SIZE = 640
 UNIT_WIDTH = DISPLAY_SIZE / 8
-MINIMAX_DEPTH = 5  # difficulty?
+MINIMAX_DEPTH = 4  # difficulty?
 INFINITY = 1000
 
 
 # FUNCTIONS
 
-def print_board():
+def print_board(highlight=None):
     for x in range(8):
         for y in range(8):
             if (x + y) % 2 == 0:
@@ -25,6 +32,13 @@ def print_board():
 
             if board_state[x][y] is not None:
                 screen.blit(board_state[x][y].image, (x * UNIT_WIDTH, y * UNIT_WIDTH))
+
+    if highlight is not None:
+        pygame.draw.rect(screen, (180, 187, 0),
+                         (highlight[0] * UNIT_WIDTH, highlight[1] * UNIT_WIDTH, UNIT_WIDTH, UNIT_WIDTH))
+        # no need to check if there is a piece since it just moved there
+        screen.blit(board_state[highlight[0]][highlight[1]].image,
+                    (highlight[0] * UNIT_WIDTH, highlight[1] * UNIT_WIDTH))
 
 
 def get_clicked_position():
@@ -38,17 +52,26 @@ def print_markers(valid_moves):
         pygame.draw.circle(screen, COLOR_MARKER, centre, 20)
 
 
-def is_game_over(board):
-    king_count = 0
-    for x in range(8):
-        for y in range(8):
-            if board[x][y] is not None:
-                if board[x][y].__class__.__name__ is "King":
-                    king_count += 1
+def is_game_over(board, black, white, check):
+    if check is 'b':
+        king_ok = False
+        for pos in black:
+            if board[pos[0]][pos[1]].__class__.__name__ is "King":
+                king_ok = True
+                break
+        if not king_ok:
+            return 'w'
 
-    if king_count == 2:
-        return False
-    return True
+    elif check is 'w':
+        king_ok = False
+        for pos in white:
+            if board[pos[0]][pos[1]].__class__.__name__ is "King":
+                king_ok = True
+                break
+        if not king_ok:
+            return 'b'
+
+    return False
 
 
 def get_point_sum(board):
@@ -68,8 +91,8 @@ def get_copy(board):
 
 
 def minimax(board, black, white, depth, alpha, beta, is_maximizing):
-    if depth == 0 or is_game_over(board):
-        return get_point_sum(board), 0, 0
+    if depth == 0 or is_game_over(board, black, white, 'w' if is_maximizing else 'b'):
+        return get_point_sum(board), None
 
     if is_maximizing:
         max_val = -INFINITY
@@ -131,7 +154,6 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
 pygame.display.set_caption("Say Chesse!")
 screen = pygame.display.set_mode((DISPLAY_SIZE, DISPLAY_SIZE))
 
-
 board_state = [[Rook('b'), Pawn('b'), None, None, None, None, Pawn('w'), Rook('w')],
                [Knight('b'), Pawn('b'), None, None, None, None, Pawn('w'), Knight('w')],
                [Bishop('b'), Pawn('b'), None, None, None, None, Pawn('w'), Bishop('w')],
@@ -151,7 +173,9 @@ pygame.display.update()
 active_piece_pos = None
 open_slots = None
 
-while True:
+is_running = True
+winner = None
+while is_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
@@ -173,16 +197,22 @@ while True:
                         black_pieces.remove(pos)
                     active_piece_pos = None
                     open_slots = None
-                    print_board()
+                    print_board(pos)
+
                     pygame.display.update()
 
-                    comp_move = minimax(board_state, black_pieces, white_pieces, MINIMAX_DEPTH, -INFINITY, INFINITY, True)
+                    comp_move = minimax(board_state, black_pieces, white_pieces, MINIMAX_DEPTH, -INFINITY, INFINITY,
+                                        True)
                     board_state[comp_move[2][0]][comp_move[2][1]] = board_state[comp_move[1][0]][comp_move[1][1]]
                     board_state[comp_move[1][0]][comp_move[1][1]] = None
                     black_pieces[black_pieces.index(comp_move[1])] = comp_move[2]
                     if comp_move[2] in white_pieces:
                         white_pieces.remove(comp_move[2])
-                    print_board()
+                    if is_game_over(board_state, black_pieces, white_pieces, 'w') is 'b':
+                        winner = 'b'
+                        is_running = False
+                        break
+                    print_board(comp_move[2])
                     pygame.display.update()
 
                 else:
@@ -190,3 +220,14 @@ while True:
                     open_slots = None
                     print_board()
                     pygame.display.update()
+
+screen.fill((0, 0, 0))
+end_font = pygame.font.SysFont("Calibri.ttf", 40)
+end_card = end_font.render("YOU WIN!" if winner is 'w' else "COMPUTER WINS!", True, (255, 255, 255))
+screen.blit(end_card, ((640 - end_card.get_rect().width) / 2, (640 - end_card.get_rect().height) / 2))
+pygame.display.update()
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
