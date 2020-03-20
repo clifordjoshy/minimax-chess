@@ -301,7 +301,7 @@ while is_running:
                         board_checker = get_copy(board_state)
                         board_checker[pos[0]][pos[1]] = board_checker[active_piece_pos[0]][active_piece_pos[1]]
                         board_checker[active_piece_pos[0]][active_piece_pos[1]] = None
-                        if get_if_checked('w', board_checker):
+                        if get_if_checked('w', board_checker) is not None:
                             to_remove.append(pos)
                     for pos in to_remove:
                         open_slots.remove(pos)
@@ -329,10 +329,6 @@ while is_running:
                     warn_pos = get_if_checked('b', board_state, black_pieces, white_pieces)
                     active_piece_pos = None
                     open_slots = None
-                    if is_game_over(board_state, black_pieces, white_pieces, 'b') is 'w':
-                        winner = 'w'
-                        is_running = False
-                        break
                     print_board(highlight=pos, warning=warn_pos)
                     pygame.display.update()
 
@@ -354,11 +350,18 @@ while is_running:
                         white_pieces.remove((comp_move[2][0], comp_move[2][1]))
 
                     handle_castling(board_state, comp_move[2], black_pieces)
-                    warn_pos = get_if_checked('w', board_state, black_pieces, white_pieces)
+
+                    if get_if_checked('b', board_state, black_pieces, white_pieces):        #check_mate[check to check]
+                        winner = 'w'
+                        is_running = False
+                        break
+
                     if is_game_over(board_state, black_pieces, white_pieces, 'w') is 'b':
                         winner = 'b'
                         is_running = False
                         break
+
+                    warn_pos = get_if_checked('w', board_state, black_pieces, white_pieces)
                     print_board(highlight=comp_move[2], warning=warn_pos)
                     pygame.display.update()
 
