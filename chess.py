@@ -96,7 +96,7 @@ def is_game_over(board, black, white, check):
                 king_ok = True
                 break
         if not king_ok:
-            return 'w'
+            return True
 
     elif check is 'w':
         king_ok = False
@@ -105,7 +105,7 @@ def is_game_over(board, black, white, check):
                 king_ok = True
                 break
         if not king_ok:
-            return 'b'
+            return True
 
     return False
 
@@ -145,8 +145,8 @@ def handle_castling(board, piece_pos, all_pieces):
 
 
 def minimax(board, black, white, depth, alpha, beta, is_maximizing):
-    if depth == 0 or is_game_over(board, black, white, 'w' if is_maximizing else 'b'):
-        return get_point_sum(board), None
+    if depth == 0 or is_game_over(board, black, white, 'b' if is_maximizing else 'w'):
+        return get_point_sum(board), None, None
 
     for event in pygame.event.get():  # handle quitting during intervals
         if event.type == pygame.QUIT:
@@ -160,6 +160,7 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
             for move in board[piece_pos[0]][piece_pos[1]].get_moves(piece_pos, board):
                 board_temp = get_copy(board)
                 black_temp = black.copy()
+                white_temp = white
 
                 if len(move) == 2:
                     board_temp[move[0]][move[1]] = board_temp[piece_pos[0]][piece_pos[1]]
@@ -170,13 +171,12 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
                     board_temp[piece_pos[0]][piece_pos[1]] = None
                     black_temp[black.index(piece_pos)] = (move[0], move[1])  # remove third mem
 
-                # handles any castling if there
-                handle_castling(board_temp, piece_pos, black_temp)
-
-                white_temp = white
                 if (move[0], move[1]) in white:
                     white_temp = white.copy()
                     white_temp.remove((move[0], move[1]))
+
+                # handles any castling if there
+                handle_castling(board_temp, piece_pos, black_temp)
 
                 val = minimax(board_temp, black_temp, white_temp, depth - 1, alpha, beta, False)
                 if val[0] > max_val:
@@ -198,6 +198,7 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
             for move in board[piece_pos[0]][piece_pos[1]].get_moves(piece_pos, board):
                 board_temp = get_copy(board)
                 white_temp = white.copy()
+                black_temp = black
 
                 if len(move) == 2:
                     board_temp[move[0]][move[1]] = board_temp[piece_pos[0]][piece_pos[1]]
@@ -209,12 +210,12 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
                     board_temp[piece_pos[0]][piece_pos[1]] = None
                     white_temp[white.index(piece_pos)] = (move[0], move[1])
 
-                handle_castling(board_temp, piece_pos, white_temp)
-
-                black_temp = black
                 if (move[0], move[1]) in black:
                     black_temp = black.copy()
                     black_temp.remove((move[0], move[1]))
+
+                handle_castling(board_temp, piece_pos, white_temp)
+
                 val = minimax(board_temp, black_temp, white_temp, depth - 1, alpha, beta, True)
                 if val[0] < min_val:
                     min_val = val[0]
@@ -352,7 +353,7 @@ while is_running:
 
                     handle_castling(board_state, comp_move[2], black_pieces)
 
-                    if get_if_checked('b', board_state, black_pieces, white_pieces):  # check_mate[check to check]
+                    if get_if_checked('b', board_state, black_pieces, white_pieces) is not None:  # check_mate[check to check]
                         winner = 'w'
                         is_running = False
                         break
