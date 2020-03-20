@@ -1,4 +1,5 @@
 from pieces_classes import *
+import time
 
 pygame.init()
 
@@ -43,11 +44,11 @@ def get_difficulty_from_menu():
                 opt = pygame.mouse.get_pos()
                 if menu_width_range[0] < opt[0] < menu_width_range[1]:
                     if menu_height_range[0] < opt[1] < menu_height_range[1]:
-                        return 3        # easy
+                        return 3  # easy
                     if menu_height_range[1] < opt[1] < menu_height_range[2]:
-                        return 4        # medium
+                        return 4  # medium
                     if menu_height_range[2] < opt[1] < menu_height_range[3]:
-                        return 5        # hard
+                        return 5  # hard
 
 
 def print_board(highlight=None, warning=None):
@@ -311,7 +312,7 @@ while is_running:
                         break
 
                     for i in range(len(open_slots)):
-                        if len(open_slots[i]) != 2:   # is promotion pawn(contains 3 promotion moves as third member)
+                        if len(open_slots[i]) != 2:  # is promotion pawn(contains 3 promotion moves as third member)
                             open_slots[i] = (open_slots[i][0], open_slots[i][1])
                     print_markers(open_slots)
                     pygame.display.update()
@@ -351,19 +352,39 @@ while is_running:
 
                     handle_castling(board_state, comp_move[2], black_pieces)
 
-                    if get_if_checked('b', board_state, black_pieces, white_pieces):        #check_mate[check to check]
+                    if get_if_checked('b', board_state, black_pieces, white_pieces):  # check_mate[check to check]
                         winner = 'w'
                         is_running = False
                         break
 
-                    if is_game_over(board_state, black_pieces, white_pieces, 'w') is 'b':
-                        winner = 'b'
-                        is_running = False
-                        break
+                    move_available = False
+                    for pos in white_pieces:
+                        for move in board_state[pos[0]][pos[1]].get_moves(pos, board_state):
+                            board_checker = get_copy(board_state)
+                            board_checker[move[0]][move[1]] = board_checker[pos[0]][pos[1]]
+                            board_checker[pos[0]][pos[1]] = None
+                            if get_if_checked('w', board_checker) is None:  # not_checked_
+                                move_available = True
+                                break
+                        if move_available:
+                            break
 
                     warn_pos = get_if_checked('w', board_state, black_pieces, white_pieces)
                     print_board(highlight=comp_move[2], warning=warn_pos)
                     pygame.display.update()
+
+                    if not move_available:
+                        if get_if_checked('w', board_state, black_pieces, white_pieces) is not None:
+                            # check_mate
+                            winner = 'b'
+                            is_running = False
+
+                        else:
+                            # stale_mate
+                            winner = 'tie'
+                            is_running = False
+
+                        break
 
                 else:
                     active_piece_pos = None
@@ -371,9 +392,11 @@ while is_running:
                     print_board()
                     pygame.display.update()
 
+time.sleep(3.5)
 screen.fill((0, 0, 0))
 end_font = pygame.font.SysFont("Calibri.ttf", 40)
-end_card = end_font.render("YOU WIN!" if winner is 'w' else "COMPUTER WINS!", True, (255, 255, 255))
+end_card = end_font.render("YOU WIN!" if winner is 'w' else "COMPUTER WINS!" if winner is 'b' else "DRAW", True,
+                           (255, 255, 255))
 screen.blit(end_card, ((640 - end_card.get_rect().width) / 2, (640 - end_card.get_rect().height) / 2))
 pygame.display.update()
 
