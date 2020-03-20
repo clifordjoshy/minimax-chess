@@ -394,12 +394,11 @@ while is_running:
 
 time.sleep(3.5)
 screen.fill((0, 0, 0))
-end_font = pygame.font.SysFont("Calibri.ttf", 40)
+end_font = pygame.font.SysFont("Calibri", 40)
 end_card = end_font.render("YOU WIN!" if winner is 'w' else "COMPUTER WINS!" if winner is 'b' else "DRAW", True,
                            (255, 255, 255))
 screen.blit(end_card, ((640 - end_card.get_rect().width) / 2, (640 - end_card.get_rect().height) / 2))
 pygame.display.update()
-
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
