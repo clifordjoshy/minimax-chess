@@ -1,4 +1,13 @@
 import pygame
+import sys
+import os
+
+if getattr(sys, 'frozen', False):       #for pyinstaller resource
+    Path = sys._MEIPASS              
+else:
+    Path = os.path.dirname(__file__) 
+
+
 
 BOARD_DIMENSION = 8
 BLACK_KING_POS = (4, 0)
@@ -45,7 +54,7 @@ class Pawn:
     def __init__(self, color):
         self.dir_coeff = 1 if color is 'b' else -1  # black playing down the board\
         self.color = color
-        self.image = pygame.image.load("resources/pawn_" + color + ".png")
+        self.image = pygame.image.load(os.path.join(Path, "resources/pawn_" + color + ".png"))
         self.points = 1 if color is 'b' else -1
         self.double_step_row = 1 if color is 'b' else 6
         self.promotion_row = 0 if color is 'w' else 7
@@ -92,7 +101,7 @@ class Rook:
     def __init__(self, color):
         self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
         self.color = color
-        self.image = pygame.image.load("resources/rook_" + color + ".png")
+        self.image = pygame.image.load(os.path.join(Path, "resources/rook_" + color + ".png"))
         self.points = 5 if color is 'b' else -5
         self.can_castle = True
 
@@ -138,7 +147,7 @@ class Knight:
     def __init__(self, color):
         self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
         self.color = color
-        self.image = pygame.image.load("resources/knight_" + color + ".png")
+        self.image = pygame.image.load(os.path.join(Path, "resources/knight_" + color + ".png"))
         self.points = 3 if color is 'b' else -3
 
     def get_moves(self, position, board_state):
@@ -156,7 +165,7 @@ class Bishop:
     def __init__(self, color):
         self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
         self.color = color
-        self.image = pygame.image.load("resources/bishop_" + color + ".png")
+        self.image = pygame.image.load(os.path.join(Path, "resources/bishop_" + color + ".png"))
         self.points = 3 if color is 'b' else -3
 
     def get_moves(self, position, board_state):
@@ -204,7 +213,7 @@ class Queen:
     def __init__(self, color):
         self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
         self.color = color
-        self.image = pygame.image.load("resources/queen_" + color + ".png")
+        self.image = pygame.image.load(os.path.join(Path, "resources/queen_" + color + ".png"))
         self.points = 10 if color is 'b' else -10
 
     def get_moves(self, position, board_state):  # rook + bishop
@@ -286,7 +295,7 @@ class King:
     def __init__(self, color):
         self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
         self.color = color
-        self.image = pygame.image.load("resources/king_" + color + ".png")
+        self.image = pygame.image.load(os.path.join(Path, "resources/king_" + color + ".png"))
         self.points = 100 if color is 'b' else -100
         self.can_castle = True
 

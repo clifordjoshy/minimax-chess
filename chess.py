@@ -1,4 +1,3 @@
-import sys
 from pieces_classes import *
 
 '''
@@ -204,10 +203,10 @@ def handle_promotion_menu(position):
     if position[1] == 0 and board_state[position[0]][position[1]].__class__.__name__ is "Pawn":
         pygame.draw.rect(screen, (128, 0, 128), (155, 275, 330, 90))
         pygame.draw.rect(screen, (255, 255, 0), (160, 280, 320, 80))
-        screen.blit(pygame.image.load("resources/knight_w.png"), (160, 280))
-        screen.blit(pygame.image.load("resources/bishop_w.png"), (240, 280))
-        screen.blit(pygame.image.load("resources/rook_w.png"), (320, 280))
-        screen.blit(pygame.image.load("resources/queen_w.png"), (400, 280))
+        screen.blit(pygame.image.load(os.path.join(Path, "resources/knight_w.png")), (160, 280))
+        screen.blit(pygame.image.load(os.path.join(Path, "resources/bishop_w.png")), (240, 280))
+        screen.blit(pygame.image.load(os.path.join(Path, "resources/rook_w.png")), (320, 280))
+        screen.blit(pygame.image.load(os.path.join(Path, "resources/queen_w.png")), (400, 280))
         pygame.display.update()
         while True:
             for event in pygame.event.get():
