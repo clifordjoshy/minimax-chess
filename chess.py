@@ -1,12 +1,5 @@
 from pieces_classes import *
 
-'''
-if getattr(sys, 'frozen', False):
-    Path = sys._MEIPASS              
-else:
-    Path = os.path.dirname(__file__) 
-'''
-
 pygame.init()
 
 # CONSTANTS
@@ -15,11 +8,47 @@ COLOR_BLACK = (171, 101, 37)
 COLOR_MARKER = (87, 187, 0)
 DISPLAY_SIZE = 640
 UNIT_WIDTH = DISPLAY_SIZE / 8
-MINIMAX_DEPTH = 5  # difficulty?
 INFINITY = 1000
 
 
 # FUNCTIONS
+def get_difficulty_from_menu():
+    screen.fill((0, 0, 0))
+    title_font = pygame.font.SysFont("Georgia", 35, bold=True)
+    title_text = title_font.render("CHOOSE YOUR DIFFICULTY", True, (255, 255, 255))
+    option_font = pygame.font.SysFont("Segoe UI", 30, bold=False)
+    easy_text = option_font.render("Way Too Easy", True, (128, 128, 128))
+    medium_text = option_font.render("Surprisingly Medium", True, (128, 128, 128))
+    hard_text = option_font.render("Harder Than Steel", True, (128, 128, 128))
+    credit_font = pygame.font.SysFont("Segoe UI", 15, bold=False)
+    credit_text = credit_font.render("github.com/clifordjoshy", True, (255, 255, 255))
+    screen.blit(title_text, ((DISPLAY_SIZE - title_text.get_rect().width) / 2, DISPLAY_SIZE / 2 - 60 -
+                             title_text.get_rect().height))
+    menu_height_range = [DISPLAY_SIZE / 2, DISPLAY_SIZE / 2 + medium_text.get_rect().height,
+                         DISPLAY_SIZE / 2 + 2 * medium_text.get_rect().height,
+                         DISPLAY_SIZE / 2 + 3 * medium_text.get_rect().height]
+    menu_width_range = [(DISPLAY_SIZE - medium_text.get_rect().width) / 2,
+                        (DISPLAY_SIZE + medium_text.get_rect().width) / 2]
+    screen.blit(easy_text, (menu_width_range[0], menu_height_range[0]))
+    screen.blit(medium_text, (menu_width_range[0], menu_height_range[1]))
+    screen.blit(hard_text, (menu_width_range[0], menu_height_range[2]))
+    screen.blit(credit_text,
+                (DISPLAY_SIZE - credit_text.get_rect().width - 5, DISPLAY_SIZE - credit_text.get_rect().height - 5))
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                opt = pygame.mouse.get_pos()
+                if menu_width_range[0] < opt[0] < menu_width_range[1]:
+                    if menu_height_range[0] < opt[1] < menu_height_range[1]:
+                        return 3        # easy
+                    if menu_height_range[1] < opt[1] < menu_height_range[2]:
+                        return 4        # medium
+                    if menu_height_range[2] < opt[1] < menu_height_range[3]:
+                        return 5        # hard
+
 
 def print_board(highlight=None, warning=None):
     for x in range(8):
@@ -118,7 +147,7 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
     if depth == 0 or is_game_over(board, black, white, 'w' if is_maximizing else 'b'):
         return get_point_sum(board), None
 
-    for event in pygame.event.get():        #handle quitting during intervals
+    for event in pygame.event.get():  # handle quitting during intervals
         if event.type == pygame.QUIT:
             sys.exit()
 
@@ -135,10 +164,10 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
                     board_temp[move[0]][move[1]] = board_temp[piece_pos[0]][piece_pos[1]]
                     board_temp[piece_pos[0]][piece_pos[1]] = None
                     black_temp[black.index(piece_pos)] = move
-                else:       # pawn promotion
+                else:  # pawn promotion
                     board_temp[move[0]][move[1]] = move[2]('b')
                     board_temp[piece_pos[0]][piece_pos[1]] = None
-                    black_temp[black.index(piece_pos)] = (move[0], move[1])     # remove third mem
+                    black_temp[black.index(piece_pos)] = (move[0], move[1])  # remove third mem
 
                 # handles any castling if there
                 handle_castling(board_temp, piece_pos, black_temp)
@@ -180,7 +209,7 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
                     white_temp[white.index(piece_pos)] = (move[0], move[1])
 
                 handle_castling(board_temp, piece_pos, white_temp)
-                
+
                 black_temp = black
                 if (move[0], move[1]) in black:
                     black_temp = black.copy()
@@ -231,6 +260,7 @@ def handle_promotion_menu(position):
 
 pygame.display.set_caption("Say Chess!")
 screen = pygame.display.set_mode((DISPLAY_SIZE, DISPLAY_SIZE))
+MINIMAX_DEPTH = get_difficulty_from_menu()
 
 board_state = [[Rook('b'), Pawn('b'), None, None, None, None, Pawn('w'), Rook('w')],
                [Knight('b'), Pawn('b'), None, None, None, None, Pawn('w'), Knight('w')],
@@ -264,7 +294,7 @@ while is_running:
                     active_piece_pos = pos
                     open_slots = board_state[active_piece_pos[0]][active_piece_pos[1]].get_moves(pos, board_state)
                     for i in range(len(open_slots)):
-                        if len(open_slots[i]) != 2:     # is promotion pawn(contains 3 promotion moves as third member)
+                        if len(open_slots[i]) != 2:  # is promotion pawn(contains 3 promotion moves as third member)
                             open_slots[i] = (open_slots[i][0], open_slots[i][1])
                     print_markers(open_slots)
                     pygame.display.update()
@@ -298,7 +328,7 @@ while is_running:
                         board_state[comp_move[1][0]][comp_move[1][1]] = None
                         black_pieces[black_pieces.index(comp_move[1])] = comp_move[2]
 
-                    else:       # promotion
+                    else:  # promotion
                         board_state[comp_move[2][0]][comp_move[2][1]] = comp_move[2][2]('b')
                         board_state[comp_move[1][0]][comp_move[1][1]] = None
                         black_pieces[black_pieces.index(comp_move[1])] = (comp_move[2][0], comp_move[2][1])
