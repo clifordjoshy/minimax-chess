@@ -294,8 +294,24 @@ while is_running:
                 if board_state[pos[0]][pos[1]] is not None and board_state[pos[0]][pos[1]].color is 'w':
                     active_piece_pos = pos
                     open_slots = board_state[active_piece_pos[0]][active_piece_pos[1]].get_moves(pos, board_state)
+
+                    # validating moves
+                    to_remove = []
+                    for pos in open_slots:
+                        board_checker = get_copy(board_state)
+                        board_checker[pos[0]][pos[1]] = board_checker[active_piece_pos[0]][active_piece_pos[1]]
+                        board_checker[active_piece_pos[0]][active_piece_pos[1]] = None
+                        if get_if_checked('w', board_checker):
+                            to_remove.append(pos)
+                    for pos in to_remove:
+                        open_slots.remove(pos)
+                    if len(open_slots) == 0:
+                        active_piece_pos = None
+                        open_slots = None
+                        break
+
                     for i in range(len(open_slots)):
-                        if len(open_slots[i]) != 2:  # is promotion pawn(contains 3 promotion moves as third member)
+                        if len(open_slots[i]) != 2:   # is promotion pawn(contains 3 promotion moves as third member)
                             open_slots[i] = (open_slots[i][0], open_slots[i][1])
                     print_markers(open_slots)
                     pygame.display.update()
