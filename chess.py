@@ -259,6 +259,7 @@ def handle_promotion_menu(position):
 
 
 pygame.display.set_caption("Say Chess!")
+pygame.display.set_icon(pygame.image.load(os.path.join(Path, "resources/chess_icon.png")))
 screen = pygame.display.set_mode((DISPLAY_SIZE, DISPLAY_SIZE))
 MINIMAX_DEPTH = get_difficulty_from_menu()
 
