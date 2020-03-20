@@ -16,7 +16,7 @@ COLOR_BLACK = (171, 101, 37)
 COLOR_MARKER = (87, 187, 0)
 DISPLAY_SIZE = 640
 UNIT_WIDTH = DISPLAY_SIZE / 8
-MINIMAX_DEPTH = 4  # difficulty?
+MINIMAX_DEPTH = 5  # difficulty?
 INFINITY = 1000
 
 
@@ -118,6 +118,10 @@ def handle_castling(board, piece_pos, all_pieces):
 def minimax(board, black, white, depth, alpha, beta, is_maximizing):
     if depth == 0 or is_game_over(board, black, white, 'w' if is_maximizing else 'b'):
         return get_point_sum(board), None
+
+    for event in pygame.event.get():        #handle quitting during intervals
+        if event.type == pygame.QUIT:
+            sys.exit()
 
     if is_maximizing:
         max_val = -INFINITY
@@ -289,7 +293,8 @@ while is_running:
                     # computer move
                     comp_move = minimax(board_state, black_pieces, white_pieces, MINIMAX_DEPTH, -INFINITY, INFINITY,
                                         True)
-                    if len(comp_move[2]) == 2:
+
+                    if comp_move[2] is not None and len(comp_move[2]) == 2:
                         board_state[comp_move[2][0]][comp_move[2][1]] = board_state[comp_move[1][0]][comp_move[1][1]]
                         board_state[comp_move[1][0]][comp_move[1][1]] = None
                         black_pieces[black_pieces.index(comp_move[1])] = comp_move[2]

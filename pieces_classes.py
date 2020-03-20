@@ -33,8 +33,10 @@ def get_if_checked(side, board, black=None, white=None):
                 king = piece
 
     for piece_pos in check_for:
-        if king in board[piece_pos[0]][piece_pos[1]].get_moves(piece_pos, board):
-            return king
+        if board[piece_pos[0]][piece_pos[1]].__class__.__name__ != "King":
+            # if statement prevents infinite recursion between opposite king checks. King check can't happen.
+            if king in board[piece_pos[0]][piece_pos[1]].get_moves(piece_pos, board):
+                return king
 
     return None
 
