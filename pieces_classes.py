@@ -25,20 +25,20 @@ def is_available(x, y, side, board_state):
 def get_if_checked(side, board, black=None, white=None):
     king = None
     if black is None:
-        black = [(x, y) for x in range(8) for y in range(8) if board[x][y] is not None and board[x][y].color is 'b']
+        black = [(x, y) for x in range(8) for y in range(8) if board[x][y] is not None and board[x][y].color == 'b']
     if white is None:
-        white = [(x, y) for x in range(8) for y in range(8) if board[x][y] is not None and board[x][y].color is 'w']
+        white = [(x, y) for x in range(8) for y in range(8) if board[x][y] is not None and board[x][y].color == 'w']
 
-    if side is 'w':
+    if side == 'w':
         check_for = black
         for piece in white:
-            if board[piece[0]][piece[1]].__class__.__name__ is "King":
+            if board[piece[0]][piece[1]].__class__.__name__ == "King":
                 king = piece
 
     else:
         check_for = white
         for piece in black:
-            if board[piece[0]][piece[1]].__class__.__name__ is "King":
+            if board[piece[0]][piece[1]].__class__.__name__ == "King":
                 king = piece
 
     for piece_pos in check_for:
@@ -52,12 +52,12 @@ def get_if_checked(side, board, black=None, white=None):
 
 class Pawn:
     def __init__(self, color):
-        self.dir_coeff = 1 if color is 'b' else -1  # black playing down the board\
+        self.dir_coeff = 1 if color == 'b' else -1  # black playing down the board\
         self.color = color
         self.image = pygame.image.load(os.path.join(Path, "resources/pawn_" + color + ".png"))
-        self.points = 1 if color is 'b' else -1
-        self.double_step_row = 1 if color is 'b' else 6
-        self.promotion_row = 0 if color is 'w' else 7
+        self.points = 1 if color == 'b' else -1
+        self.double_step_row = 1 if color == 'b' else 6
+        self.promotion_row = 0 if color == 'w' else 7
 
     def get_moves(self, position, board_state):
         valid_moves = []
@@ -99,10 +99,10 @@ class Pawn:
 
 class Rook:
     def __init__(self, color):
-        self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
+        self.dir_coeff = 1 if color == "b" else -1  # black playing down the board
         self.color = color
         self.image = pygame.image.load(os.path.join(Path, "resources/rook_" + color + ".png"))
-        self.points = 5 if color is 'b' else -5
+        self.points = 5 if color =='b' else -5
         self.can_castle = True
 
     def get_moves(self, position, board_state):
@@ -145,10 +145,10 @@ class Rook:
 
 class Knight:
     def __init__(self, color):
-        self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
+        self.dir_coeff = 1 if color == "b" else -1  # black playing down the board
         self.color = color
         self.image = pygame.image.load(os.path.join(Path, "resources/knight_" + color + ".png"))
-        self.points = 3 if color is 'b' else -3
+        self.points = 3 if color =='b' else -3
 
     def get_moves(self, position, board_state):
         valid_moves = []
@@ -163,10 +163,10 @@ class Knight:
 
 class Bishop:
     def __init__(self, color):
-        self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
+        self.dir_coeff = 1 if color == "b" else -1  # black playing down the board
         self.color = color
         self.image = pygame.image.load(os.path.join(Path, "resources/bishop_" + color + ".png"))
-        self.points = 3 if color is 'b' else -3
+        self.points = 3 if color == 'b' else -3
 
     def get_moves(self, position, board_state):
         valid_moves = []
@@ -211,10 +211,10 @@ class Bishop:
 
 class Queen:
     def __init__(self, color):
-        self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
+        self.dir_coeff = 1 if color == "b" else -1  # black playing down the board
         self.color = color
         self.image = pygame.image.load(os.path.join(Path, "resources/queen_" + color + ".png"))
-        self.points = 10 if color is 'b' else -10
+        self.points = 10 if color == 'b' else -10
 
     def get_moves(self, position, board_state):  # rook + bishop
         valid_moves = []
@@ -293,10 +293,10 @@ class Queen:
 
 class King:
     def __init__(self, color):
-        self.dir_coeff = 1 if color is "b" else -1  # black playing down the board
+        self.dir_coeff = 1 if color == "b" else -1  # black playing down the board
         self.color = color
         self.image = pygame.image.load(os.path.join(Path, "resources/king_" + color + ".png"))
-        self.points = 100 if color is 'b' else -100
+        self.points = 100 if color == 'b' else -100
         self.can_castle = True
 
     def get_moves(self, position, board_state):
@@ -309,13 +309,13 @@ class King:
 
         if self.can_castle:
             # castling
-            pos = BLACK_KING_POS if self.color is 'b' else WHITE_KING_POS
+            pos = BLACK_KING_POS if self.color == 'b' else WHITE_KING_POS
             if board_state[1][pos[1]] is None and board_state[2][pos[1]] is None and board_state[3][pos[1]] is None:
-                if board_state[0][pos[1]] is not None and board_state[0][pos[1]].__class__.__name__ is "Rook" and \
+                if board_state[0][pos[1]] is not None and board_state[0][pos[1]].__class__.__name__ == "Rook" and \
                         board_state[0][pos[1]].can_castle and get_if_checked(self.color, board_state) is None:
                     valid_moves.append((2, pos[1]))
             if board_state[5][pos[1]] is None and board_state[6][pos[1]] is None:
-                if board_state[7][pos[1]] is not None and board_state[7][pos[1]].__class__.__name__ is "Rook" and \
+                if board_state[7][pos[1]] is not None and board_state[7][pos[1]].__class__.__name__ == "Rook" and \
                         board_state[7][pos[1]].can_castle and get_if_checked(self.color, board_state) is None:
                     valid_moves.append((6, pos[1]))
 

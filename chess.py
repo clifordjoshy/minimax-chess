@@ -8,7 +8,7 @@ COLOR_WHITE = (252, 215, 157)
 COLOR_BLACK = (171, 101, 37)
 COLOR_MARKER = (87, 187, 0)
 DISPLAY_SIZE = 640
-UNIT_WIDTH = DISPLAY_SIZE / 8
+UNIT_WIDTH = DISPLAY_SIZE // 8
 INFINITY = 1000
 
 
@@ -23,13 +23,13 @@ def get_difficulty_from_menu():
     hard_text = option_font.render("Harder Than Steel", True, (128, 128, 128))
     credit_font = pygame.font.SysFont("Segoe UI", 15, bold=False)
     credit_text = credit_font.render("github.com/clifordjoshy", True, (255, 255, 255))
-    screen.blit(title_text, ((DISPLAY_SIZE - title_text.get_rect().width) / 2, DISPLAY_SIZE / 2 - 60 -
+    screen.blit(title_text, ((DISPLAY_SIZE - title_text.get_rect().width) // 2, DISPLAY_SIZE // 2 - 60 -
                              title_text.get_rect().height))
-    menu_height_range = [DISPLAY_SIZE / 2, DISPLAY_SIZE / 2 + medium_text.get_rect().height,
-                         DISPLAY_SIZE / 2 + 2 * medium_text.get_rect().height,
-                         DISPLAY_SIZE / 2 + 3 * medium_text.get_rect().height]
-    menu_width_range = [(DISPLAY_SIZE - medium_text.get_rect().width) / 2,
-                        (DISPLAY_SIZE + medium_text.get_rect().width) / 2]
+    menu_height_range = [int(DISPLAY_SIZE / 2), int(DISPLAY_SIZE / 2 + medium_text.get_rect().height),
+                         int(DISPLAY_SIZE / 2 + 2 * medium_text.get_rect().height),
+                         int(DISPLAY_SIZE / 2 + 3 * medium_text.get_rect().height)]
+    menu_width_range = [(DISPLAY_SIZE - medium_text.get_rect().width) // 2,
+                        (DISPLAY_SIZE + medium_text.get_rect().width) // 2]
     screen.blit(easy_text, (menu_width_range[0], menu_height_range[0]))
     screen.blit(medium_text, (menu_width_range[0], menu_height_range[1]))
     screen.blit(hard_text, (menu_width_range[0], menu_height_range[2]))
@@ -55,19 +55,19 @@ def print_board(highlight=None, warning=None):
     for x in range(8):
         for y in range(8):
             if (x + y) % 2 == 0:
-                pygame.draw.rect(screen, COLOR_WHITE, (x * UNIT_WIDTH, y * UNIT_WIDTH, UNIT_WIDTH, UNIT_WIDTH))
+                pygame.draw.rect(screen, COLOR_WHITE, (int(x * UNIT_WIDTH), int(y * UNIT_WIDTH), int(UNIT_WIDTH), int(UNIT_WIDTH)))
             else:
-                pygame.draw.rect(screen, COLOR_BLACK, (x * UNIT_WIDTH, y * UNIT_WIDTH, UNIT_WIDTH, UNIT_WIDTH))
+                pygame.draw.rect(screen, COLOR_BLACK, (int(x * UNIT_WIDTH), int(y * UNIT_WIDTH), int(UNIT_WIDTH), int(UNIT_WIDTH)))
 
             if board_state[x][y] is not None:
-                screen.blit(board_state[x][y].image, (x * UNIT_WIDTH, y * UNIT_WIDTH))
+                screen.blit(board_state[x][y].image, (int(x * UNIT_WIDTH), int(y * UNIT_WIDTH)))
 
     if highlight is not None:
         pygame.draw.rect(screen, (180, 187, 0),
-                         (highlight[0] * UNIT_WIDTH, highlight[1] * UNIT_WIDTH, UNIT_WIDTH, UNIT_WIDTH))
+                         (int(highlight[0] * UNIT_WIDTH), int(highlight[1] * UNIT_WIDTH), int(UNIT_WIDTH), int(UNIT_WIDTH)))
         # no need to check if there is a piece since it just moved there
         screen.blit(board_state[highlight[0]][highlight[1]].image,
-                    (highlight[0] * UNIT_WIDTH, highlight[1] * UNIT_WIDTH))
+                    (int(highlight[0] * UNIT_WIDTH), int(highlight[1] * UNIT_WIDTH)))
 
     if warning is not None:
         pygame.draw.rect(screen, (180, 0, 0),
@@ -89,19 +89,19 @@ def print_markers(valid_moves):
 
 
 def is_game_over(board, black, white, check):
-    if check is 'b':
+    if check == 'b':
         king_ok = False
         for pos in black:
-            if board[pos[0]][pos[1]].__class__.__name__ is "King":
+            if board[pos[0]][pos[1]].__class__.__name__ == "King":
                 king_ok = True
                 break
         if not king_ok:
             return True
 
-    elif check is 'w':
+    elif check == 'w':
         king_ok = False
         for pos in white:
-            if board[pos[0]][pos[1]].__class__.__name__ is "King":
+            if board[pos[0]][pos[1]].__class__.__name__ == "King":
                 king_ok = True
                 break
         if not king_ok:
@@ -127,7 +127,7 @@ def get_copy(board):
 
 
 def handle_castling(board, piece_pos, all_pieces):
-    if board[piece_pos[0]][piece_pos[1]].__class__.__name__ is "King":
+    if board[piece_pos[0]][piece_pos[1]].__class__.__name__ == "King":
         if board[piece_pos[0]][piece_pos[1]].can_castle:
             if piece_pos[0] == 6:
                 board[5][7] = board[7][7]  # rook movement
@@ -140,7 +140,7 @@ def handle_castling(board, piece_pos, all_pieces):
                 all_pieces[all_pieces.index((0, piece_pos[1]))] = (3, piece_pos[1])
         board[piece_pos[0]][piece_pos[1]].can_castle = False
 
-    if board[piece_pos[0]][piece_pos[1]].__class__.__name__ is "Rook" and board[piece_pos[0]][piece_pos[1]].can_castle:
+    if board[piece_pos[0]][piece_pos[1]].__class__.__name__ == "Rook" and board[piece_pos[0]][piece_pos[1]].can_castle:
         board[piece_pos[0]][piece_pos[1]].can_castle = False
 
 
@@ -231,7 +231,7 @@ def minimax(board, black, white, depth, alpha, beta, is_maximizing):
 
 
 def handle_promotion_menu(position):
-    if position[1] == 0 and board_state[position[0]][position[1]].__class__.__name__ is "Pawn":
+    if position[1] == 0 and board_state[position[0]][position[1]].__class__.__name__ == "Pawn":
         pygame.draw.rect(screen, (128, 0, 128), (155, 275, 330, 90))
         pygame.draw.rect(screen, (255, 255, 0), (160, 280, 320, 80))
         screen.blit(pygame.image.load(os.path.join(Path, "resources/knight_w.png")), (160, 280))
@@ -293,7 +293,7 @@ while is_running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             pos = get_clicked_position()
             if active_piece_pos is None:
-                if board_state[pos[0]][pos[1]] is not None and board_state[pos[0]][pos[1]].color is 'w':
+                if board_state[pos[0]][pos[1]] is not None and board_state[pos[0]][pos[1]].color == 'w':
                     active_piece_pos = pos
                     open_slots = board_state[active_piece_pos[0]][active_piece_pos[1]].get_moves(pos, board_state)
 
@@ -396,9 +396,9 @@ while is_running:
 time.sleep(3.5)
 screen.fill((0, 0, 0))
 end_font = pygame.font.SysFont("Calibri", 40)
-end_card = end_font.render("YOU WIN!" if winner is 'w' else "COMPUTER WINS!" if winner is 'b' else "DRAW", True,
+end_card = end_font.render("YOU WIN!" if winner == 'w' else "COMPUTER WINS!" if winner == 'b' else "DRAW", True,
                            (255, 255, 255))
-screen.blit(end_card, ((640 - end_card.get_rect().width) / 2, (640 - end_card.get_rect().height) / 2))
+screen.blit(end_card, ((640 - end_card.get_rect().width) // 2, (640 - end_card.get_rect().height) // 2))
 pygame.display.update()
 while True:
     for event in pygame.event.get():
